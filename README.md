@@ -1,3 +1,17 @@
+## SCREENSHOTS
+
+<img src="https://github.com/gaurav822/BlogApp/blob/master/Screenshots/1.jpeg" width="400" height="700">
+<img src="https://github.com/gaurav822/BlogApp/blob/master/Screenshots/2.jpeg" width="400" height="700">
+<img src="https://github.com/gaurav822/BlogApp/blob/master/Screenshots/3.jpeg" width="400" height="700">
+<img src="https://github.com/gaurav822/BlogApp/blob/master/Screenshots/4.jpeg" width="400" height="700">
+<img src="https://github.com/gaurav822/BlogApp/blob/master/Screenshots/5.jpeg" width="400" height="700">
+
+<img src="https://github.com/gaurav822/BlogApp/blob/master/Screenshots/6.jpeg" width="400" height="700">
+
+
+
+
+
 # BlogApp
 
 A new Flutter project.
