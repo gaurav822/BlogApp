@@ -1,6 +1,5 @@
 import 'package:BlogApp/Models/blogmodels.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class BlogDetailsPage extends StatefulWidget {
   @override
@@ -23,12 +22,23 @@ class _BlogDetailsPageState extends State<BlogDetailsPage> {
 
   Widget _body(BlogModel blogModel){
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Row(
+            
             children: [
-              Image.asset("assets/gaurav.png",height: 60,width: 100,),
+              Container(
+                  padding: EdgeInsets.all(8),
+                  child: SizedBox(
+                    width: 60,
+                    height: 70,
+                    child: CircleAvatar(
+                      backgroundImage: NetworkImage(blogModel.imageUrl.isEmpty?"https://banner2.cleanpng.com/20190221/gw/kisspng-computer-icons-user-profile-clip-art-portable-netw-c-svg-png-icon-free-download-389-86-onlineweb-5c6f7efd8fecb7.6156919015508108775895.jpg":blogModel.imageUrl),
+                    ),
+                  ),
+                ),
               Flexible(child: Text(blogModel.title,style: TextStyle(color: Colors.green,fontWeight: FontWeight.bold,fontSize: 20),))
             ],
           ),
@@ -37,12 +47,12 @@ class _BlogDetailsPageState extends State<BlogDetailsPage> {
 
         _postDate(blogModel),
 
-        _bloggerDetails(),
+        _bloggerDetails(blogModel),
       ],
     );
   }
 
-  Widget _bloggerDetails(){
+  Widget _bloggerDetails(BlogModel blogModel){
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(

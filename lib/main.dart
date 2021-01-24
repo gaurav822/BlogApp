@@ -1,14 +1,15 @@
 import 'package:BlogApp/Screens/blogdetailspage.dart';
-import 'package:BlogApp/Screens/home.dart';
+import 'package:BlogApp/SignInPage/googleSignIn.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 void main()async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(MaterialApp(
+  runApp(GetMaterialApp(
 
-    home: HomePage(),
+    home: SignIn(),
     debugShowCheckedModeBanner: false,
     routes: {
       "/detailedPage": (context)=> BlogDetailsPage()

@@ -1,7 +1,10 @@
-import 'dart:ffi';
 
+import 'package:BlogApp/Controllers/searchbarcontroller.dart';
 import 'package:BlogApp/Models/blogmodels.dart';
+import 'package:BlogApp/Screens/blogdetailspage.dart';
+import 'package:BlogApp/SignInPage/googleSignIn.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -19,8 +22,13 @@ class _HomePageState extends State<HomePage> {
   TextEditingController titleController= TextEditingController();
   TextEditingController shortdetailController= TextEditingController();
   TextEditingController briefdetailController= TextEditingController();
+  TextEditingController searchController = TextEditingController();
+  SearchBarController searchBarController = SearchBarController();
+
+  List<QueryDocumentSnapshot> blogModelSnapShots= List();
   String helperText="Max Length Reached";
   bool isSearching=false;
+  FirebaseAuth firebaseAuth= FirebaseAuth.instance;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,47 +58,151 @@ class _HomePageState extends State<HomePage> {
     //   );
     return Ink(
       color: Colors.amber,
-        child: SizedBox(
+        child: Stack(
+                  children: [SizedBox(
 
-        width: Get.width,
-        
-        height: Get.height,
-        child: StreamBuilder(
-          stream: firebaseFirestore.collection("BlogPosts").snapshots(),
-          builder: (context,AsyncSnapshot<QuerySnapshot> snapshot) {
-            List<QueryDocumentSnapshot> qdocsnap= snapshot.data.docs;
-            
-            if(snapshot.hasData){
-              return ListView.builder(
-                itemCount: qdocsnap.length,
-                itemBuilder: (ctx,index){
-                  return Container(
-                  decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [Colors.deepPurple[700],Colors.purple[500],],
-                  begin: const FractionalOffset(0.5, 0.0),
-                  end: const FractionalOffset(0.0, 0.5),
-                  stops: [0.0,1.0])
-                ),
-                child: _card(BlogModel(
-                  title: qdocsnap[index]['title'], 
-                  shortdesC: qdocsnap[index]['shortdetail'], 
-                  briefDesc: qdocsnap[index]['briefdetails'],
-                  postedDate: qdocsnap[index].reference.id
+          width: Get.width,
+          height: Get.height,
+          child: StreamBuilder(
+            stream: firebaseFirestore.collection("BlogPosts").snapshots(),
+            builder: (context,AsyncSnapshot<QuerySnapshot> snapshot) {
+              List<QueryDocumentSnapshot> qdocsnap= snapshot.data.docs;
+              blogModelSnapShots=qdocsnap;
+              if(snapshot.hasData){
+                return ListView.builder(
+                  itemCount: qdocsnap.length,
+                  itemBuilder: (ctx,index){
+                    return Container(
+                    decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [Colors.deepPurple[700],Colors.purple[500],],
+                    begin: const FractionalOffset(0.5, 0.0),
+                    end: const FractionalOffset(0.0, 0.5),
+                    stops: [0.0,1.0])
                   ),
+                  child: _card(BlogModel(
+                    title: qdocsnap[index]['title'], 
+                    shortdesC: qdocsnap[index]['shortdetail'], 
+                    briefDesc: qdocsnap[index]['briefdetails'],
+                    postedDate: qdocsnap[index].reference.id,
+                    imageUrl: qdocsnap[index]['imageUrl']
+                    ),
     
-                  
-                  ),
-               );
-                    
-                },
-              );
-            }
-            
-            return SizedBox();
+                    ),
+                 );
+                      
+                  },
+                );
+              }
+              
+              return SizedBox();
 
-          },
+            },
+          ),
+          
+      ),
+      Positioned(
+        right: Get.width*.05,
+        left: Get.width*.05,
+        child: _suggestionBox())
+      ],
         ),
-        
+    );
+  }
+
+  Widget _suggestionBox(){
+
+    return GetBuilder(
+      init: searchBarController,
+      builder: (_)=>
+
+     searchBarController.query.isEmpty? SizedBox(): Container(
+        padding: EdgeInsets.symmetric(horizontal: 10),
+        margin: EdgeInsets.only(top: 10),
+        width: Get.width,
+        height: Get.height*.4,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade400,
+              offset: Offset(2,2),
+              blurRadius: 3,
+              spreadRadius: 1
+            )
+          ],
+          borderRadius: BorderRadius.circular(18)
+        ),
+        child: SingleChildScrollView(
+                child: Column(
+                  // mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+              
+              _eachSuggestionCard(
+                BlogModel(
+                  title: blogModelSnapShots[0]['title'], 
+                    shortdesC: blogModelSnapShots[0]['shortdetail'], 
+                    briefDesc: blogModelSnapShots[0]['briefdetails'],
+                    postedDate: blogModelSnapShots[0].reference.id,
+                    imageUrl: blogModelSnapShots[0]['imageUrl']
+                ),
+
+                blogModelSnapShots
+              )
+            ],
+          ),
+        ),
+      
+      )
+    );
+  }
+
+   Widget _eachSuggestionCard(BlogModel blogModel, List<QueryDocumentSnapshot> blogModelSnapShots, ){
+    return GestureDetector(
+      onTap: (){
+        searchBarController.hideSuggestionBox();
+      
+        Navigator.pushNamed(context, "/detailedPage",arguments: blogModel);
+      
+      },
+          child: Container(
+            
+        padding: EdgeInsets.all(10),
+        margin: EdgeInsets.all(10),
+        width: Get.width,
+        // height: Get.height*.2,
+        color: Colors.white,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+
+            for(int i=0;i<blogModelSnapShots.length;i++)
+            
+            blogModelSnapShots[i]['title'].toString().toLowerCase().contains(searchBarController.query.toLowerCase())?
+      
+            Column(
+              children: [
+                SizedBox(
+                  height: 30,
+                ),
+                Row(
+             
+              children: [
+                
+                CircleAvatar(
+                      backgroundImage: NetworkImage(blogModelSnapShots[i]['imageUrl']),
+                    ),
+
+                    SizedBox(
+                      width: 30,
+                    ),
+                    Flexible(child: Text(blogModelSnapShots[i]['title']))
+              ],
+            )
+              ],
+            ):
+            SizedBox(),
+          ],
+        ),
       ),
     );
   }
@@ -109,11 +221,19 @@ class _HomePageState extends State<HomePage> {
           child: Row(
         
               children: [
-                Image.asset("assets/gaurav.png",
-                width: 100,
-                height: 60,),
+                Container(
+                  padding: EdgeInsets.all(8),
+                  child: SizedBox(
+                    width: 60,
+                    height: 50,
+                    child: CircleAvatar(
+                      backgroundImage: NetworkImage(blogModel.imageUrl.isEmpty?"https://banner2.cleanpng.com/20190221/gw/kisspng-computer-icons-user-profile-clip-art-portable-netw-c-svg-png-icon-free-download-389-86-onlineweb-5c6f7efd8fecb7.6156919015508108775895.jpg":blogModel.imageUrl),
+                    ),
+                  ),
+                ),
+                  
                 Flexible(
-                                child: Column(
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -140,20 +260,13 @@ class _HomePageState extends State<HomePage> {
         children: [
           UserAccountsDrawerHeader(
             
-            accountName:  Text("Gaurav Dahal"), 
-            accountEmail: Text("gauravdahal53@gmail.com"),
-            currentAccountPicture: Image.asset("assets/gaurav.png"),
+            accountName:  Text(firebaseAuth.currentUser.displayName), 
+            accountEmail: Text(firebaseAuth.currentUser.email),
+            currentAccountPicture: CircleAvatar(
+              radius: 30,
+              backgroundImage: NetworkImage(firebaseAuth.currentUser.photoURL),
+              ),
             
-            ),
-
-            _listTile(licon: Icon(Icons.cake),title: "First Option"),
-            _listTile(licon: Icon(Icons.search),title: "Second Option"),
-            _listTile(licon: Icon(Icons.cached),title: "Third Option"),
-            _listTile(licon: Icon(Icons.menu),title: "Fourth Option"),
-
-            Divider(
-              height: 10,
-              color: Colors.black,
             ),
 
             _listTile(
@@ -161,6 +274,15 @@ class _HomePageState extends State<HomePage> {
             title: "Close",
             function: (){
               Navigator.of(context).pop();
+            }
+            ),
+
+            _listTile(licon: Icon(Icons.logout),title: "Logout",
+            function: () async{
+              FirebaseAuth firebaseAuth=FirebaseAuth.instance;
+              await firebaseAuth.signOut();
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>SignIn()));
+
             }
             ),
 
@@ -198,23 +320,30 @@ class _HomePageState extends State<HomePage> {
     return SizedBox(
       height: Get.height*.06,
       width: Get.width*.9,
-      child: TextField(
-          
-          cursorColor: Colors.white,
-          cursorWidth: 2,
-          cursorHeight: 23,
-          decoration: InputDecoration(
-            hintText: "Search blogs here...",
-            hintStyle: TextStyle(color: Colors.black),
-            suffixIcon: Icon(Icons.search,color: Colors.amber,),
-            enabled: true,
-           
-            fillColor: Colors.white
+      child:TextField(
+            onChanged: (value){
+              searchBarController.onChanged(value);
+            },
+            cursorColor: Colors.white,
+            cursorWidth: 2,
+            cursorHeight: 23,
+            controller: searchController,
+            decoration: InputDecoration(
+              hintText: "Search blogs here...",
+              hintStyle: TextStyle(color: Colors.black),
+              suffixIcon: Icon(Icons.search,color: Colors.amber,),
+              enabled: true,
+             
+              fillColor: Colors.white
+            ),
           ),
-        ),
+
+          
+      
     );
   }
 
+  
   Widget _mainAppBar(){
     return AppBar(
       backgroundColor: Colors.lightBlue,
@@ -325,7 +454,9 @@ class _HomePageState extends State<HomePage> {
       Map<String,dynamic> blogData= {
       "title":titleController.text,
       "shortdetail" : shortdetailController.text,
-      "briefdetails" : briefdetailController.text,};
+      "briefdetails" : briefdetailController.text,
+      "imageUrl" : firebaseAuth.currentUser.photoURL
+      };
       await firebaseFirestore.collection("BlogPosts").doc(DateTime.now().toString().substring(0,19)).set(blogData);
       titleController.clear();
       shortdetailController.clear();
@@ -373,3 +504,5 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
+
