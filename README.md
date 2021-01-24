@@ -14,7 +14,7 @@
 
 # BlogApp
 
-A new Flutter project.
+A flutter blog app using firebase firestore.
 
 ## Getting Started
 
